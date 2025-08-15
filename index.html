@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doge</title>
+    <style>
+        /* --- 基础和布局样式 --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #fcefee;
+            background-image: 
+                radial-gradient(circle at 1px 1px, #ffdde1 1px, transparent 0),
+                radial-gradient(circle at 15px 15px, #ffde7a 1px, transparent 0);
+            background-size: 30px 30px;
+            overflow: hidden;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            position: relative; 
+            text-align: center;
+            padding: 30px;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 6px 25px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+            box-sizing: border-box;
+            z-index: 10;
+        }
+
+        /* --- 游戏主容器 --- */
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        #main-gif {
+            width: 100%; 
+            max-width: 420px;
+            height: auto;
+            max-height: 420px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            object-fit: cover;
+        }
+
+        #description-text {
+            font-size: 2rem;
+            color: #333;
+            font-weight: bold;
+            max-width: 100%;
+            margin: 10px 0;
+            min-height: 20px;
+        }
+
+        .options-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: stretch; 
+            gap: 25px;
+            min-height: 90px;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .option-btn {
+            border: none;
+            border-radius: 12px;
+            padding: 20px; 
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: #333;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            white-space: normal;
+            box-sizing: border-box; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            line-height: 1.3;
+            flex-basis: 0;
+        }
+
+        #option1 {
+            background-color: #ffdde1;
+        }
+
+        #option2 {
+            background-color: #cce7ff;
+        }
+
+        /* --- 终点页面样式 --- */
+        #finish-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        #final-gif {
+            width: 100%;
+            max-width: 450px;
+            height: auto;
+            max-height: 450px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            object-fit: cover;
+        }
+        
+        /* --- 【再来一次】按钮样式 --- */
+        .restart-btn {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+            z-index: 11;
+        }
+        .restart-btn:hover {
+            background-color: #5a6268;
+        }
+
+        /* --- 掉落特效样式 --- */
+        #falling-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        .falling-element {
+            position: absolute;
+            top: -50px;
+            animation: fall linear infinite;
+            color: #ffc0cb;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(110vh);
+            }
+        }
+
+        /* --- 中心扩展爱心特效 --- */
+        #expanding-heart-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            z-index: 25;
+        }
+
+        .expanding-heart {
+            font-size: 50vw;
+            color: #ffdde1;
+            opacity: 0;
+            transform: scale(0);
+        }
+
+        .expanding-heart.animate {
+            animation: expand-and-fade 1.5s ease-out forwards;
+        }
+
+        @keyframes expand-and-fade {
+            0% {
+                transform: scale(0);
+                opacity: 0.7;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div id="falling-container"></div>
+    <div id="expanding-heart-container">
+        <div class="expanding-heart">♥</div>
+    </div>
+
+    <div class="container">
+        
+        <div id="game-container">
+            <img id="main-gif" src="" alt="配图GIF">
+            <p id="description-text"></p>
+            <div class="options-wrapper">
+                <button id="option1" class="option-btn"></button>
+                <button id="option2" class="option-btn"></button>
+            </div>
+        </div>
+
+        <div id="finish-screen">
+            <img id="final-gif" src="" alt="终点GIF">
+        </div>
+        
+        <button id="restart-btn" class="restart-btn">再来一次</button>
+
+    </div>
+
+    <script>
+        // --- 配置区域 (您可以在这里修改每一关的内容) ---
+        const levelContent = [
+            // 关卡 0 (初始状态)
+            { 
+                option1: "我愿意", 
+                option2: "我拒绝", 
+                description: "可以和我和好吗？！！|*´Å`)ﾉ ", 
+                gif: "https://s1.aigei.com/src/img/gif/24/241869d4c1cd44689a04715e3a76c420.gif?imageMogr2/auto-orient/thumbnail/!282x282r/gravity/Center/crop/282x282/quality/85/%7CimageView2/2/w/282&e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:hQYQaBx5SDPowTmWiYA9Gh0UxTY=" 
+            },
+            // 关卡 1
+            { 
+                option1: "我愿意", 
+                option2: "我不同意", 
+                description: "可以和我和好吗？！！|*´Å`)ﾉ ", 
+                gif: "https://s1.aigei.com/src/img/gif/94/94041d496e474df0ad2d0f4f41865013.gif?imageMogr2/auto-orient/thumbnail/!282x282r/gravity/Center/crop/282x282/quality/85/%7CimageView2/2/w/282&e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:Lc250S-rt7GHrhOJ3Uj7XjJqSdQ=" 
+            },
+            // 关卡 2
+            { 
+                option1: "我愿意", 
+                option2: "我弹吉他给你听", 
+                description: "可以和我和好吗？！！|*´Å`)ﾉ ", 
+                gif: "https://s1.aigei.com/src/img/gif/b5/b509880539db48619c1d61a0fbe29999.gif?imageMogr2/auto-orient/thumbnail/!282x282r/gravity/Center/crop/282x282/quality/85/%7CimageView2/2/w/282&e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:z7QR6BsbpKpUEd_6I8NTLE7Wnts=" 
+            },
+            // 关卡 3
+            { 
+                option1: "我愿意", 
+                option2: "我跳舞给你看", 
+                description: "可以和我和好吗？！！|*´Å`)ﾉ ", 
+                gif: "https://s1.aigei.com/src/img/gif/04/044d39b900ab41758bebb7b16700b21c.gif?imageMogr2/auto-orient/thumbnail/!282x282r/gravity/Center/crop/282x282/quality/85/%7CimageView2/2/w/282&e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:JK2ShhNTs40kubZxpssL7uOsu-c=" 
+            },
+            // 关卡 4
+            { 
+                option1: "我愿意", 
+                option2: "我带你看山看海", 
+                description: "可以和我和好吗？！！|*´Å`)ﾉ ", 
+                gif: "https://s1.aigei.com/src/img/gif/47/476b7e6618c44fdeb6a040d9a9942a0d.gif?imageMogr2/auto-orient/thumbnail/!282x282r/gravity/Center/crop/282x282/quality/85/%7CimageView2/2/w/282&e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:-BAmro-w-eAm0ctblE_Wm26i8Fo=" 
+            },
+            // 关卡 5
+            { 
+                option1: "我愿意", 
+                option2: "我带你吃好多好吃的", 
+                description: "可以和我和好吗？！！|*´Å`)ﾉ ", 
+                gif: "https://s1.aigei.com/src/img/gif/a1/a1657c9ef0994ca09015448a300e4183.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:TdlJh2aROuEwTLDbz1WYhvMaCzU=" 
+            },
+            // 关卡 6
+            { 
+                option1: "我愿意", 
+                option2: "你要的空间", 
+                description: "可以和我和好吗？！！|*´Å`)ﾉ ", 
+                gif: "https://s1.aigei.com/src/img/gif/53/536a4e2c9e9c436c8c488da03422763e.gif?imageMogr2/auto-orient/thumbnail/!282x282r/gravity/Center/crop/282x282/quality/85/%7CimageView2/2/w/282&e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:hJSuMMP0S5GalvXlFa3bteVCDZU=" 
+            },
+            // 关卡 7
+            { 
+                option1: "我愿意", 
+                option2: "你要的时间", 
+                description: "可以和我和好吗？！！|*´Å`)ﾉ ", 
+                gif: "https://s1.aigei.com/src/img/gif/ac/ac714e58b4364a9f86859b46d32f1a4e.gif?e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:roXNnFDbqvMvq9TQ2g8OXqMy9Ug=" 
+            },
+            // 关卡 8
+            { 
+                option1: "我愿意", 
+                option2: "和好通道即将开启", 
+                description: "全都给你！", 
+                gif: "https://s1.aigei.com/src/img/gif/ac/ac4bed249aba46d1b14cd1e568073584.gif?imageMogr2/auto-orient/thumbnail/!282x282r/gravity/Center/crop/282x282/quality/85/%7CimageView2/2/w/282&e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:3ICeCr0So9yjMewfejU7JpnxoJc=" 
+            },
+             // 关卡 9 (最终点击)
+            { 
+                option1: "我愿意！！", 
+                option2: "", // 选项二无内容，将被隐藏
+                description: "么么哒！！", 
+                gif: "https://s1.aigei.com/src/img/gif/84/8452a3c9046f4bf2be0e327dff30112c.gif?imageMogr2/auto-orient/thumbnail/!282x282r/gravity/Center/crop/282x282/quality/85/%7CimageView2/2/w/282&e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:3BYlnLW4A6JpdA1B1gTZytt3llI=" 
+            },
+        ];
+
+        const finalGifUrl = "https://s1.aigei.com/src/img/gif/40/4040710f1b9d43eca2aaf1898eb64e0f.gif?imageMogr2/auto-orient/thumbnail/!282x282r/gravity/Center/crop/282x282/quality/85/%7CimageView2/2/w/282&e=2051020800&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:MK-Cq5yM_skhvE-6voYOhwt-VJA=";
+        const maxLevels = levelContent.length;
+        const initialFontSize = 1.3;
+        const fontSizeIncrement = 0.25;
+
+
+        // --- 程序逻辑区域 (一般无需修改) ---
+        const gameContainer = document.getElementById('game-container');
+        const finishScreen = document.getElementById('finish-screen');
+        const mainGif = document.getElementById('main-gif');
+        const finalGif = document.getElementById('final-gif');
+        const descriptionElement = document.getElementById('description-text');
+        const option1Button = document.getElementById('option1');
+        const option2Button = document.getElementById('option2');
+        const restartBtn = document.getElementById('restart-btn');
+        const fallingContainer = document.getElementById('falling-container');
+        const expandingHeartContainer = document.getElementById('expanding-heart-container');
+        const expandingHeart = expandingHeartContainer.querySelector('.expanding-heart');
+        
+        let currentLevel = 0;
+
+        function createFallingEffect() {
+            const elements = ['♥', '★', '(>ω<*)', '(づ｡◕ᴗᴗ◕｡)づ'];
+            const colors = ['#ffc0cb', '#ffde7a', '#c3aed6'];
+            const count = 30;
+
+            for (let i = 0; i < count; i++) {
+                const element = document.createElement('div');
+                element.classList.add('falling-element');
+                element.textContent = elements[Math.floor(Math.random() * elements.length)];
+                
+                element.style.left = `${Math.random() * 100}vw`;
+                element.style.fontSize = `${Math.random() * 1.5 + 1}rem`;
+                element.style.color = colors[Math.floor(Math.random() * colors.length)];
+                element.style.animationDuration = `${Math.random() * 2 + 2}s`; 
+                element.style.animationDelay = `${Math.random() * 4}s`;
+
+                fallingContainer.appendChild(element);
+            }
+        }
+
+        function clearFallingEffect() {
+            fallingContainer.innerHTML = '';
+        }
+
+        function updateContent(level) {
+            const content = levelContent[level];
+            mainGif.src = content.gif;
+            descriptionElement.textContent = content.description;
+            option1Button.textContent = content.option1;
+            option2Button.textContent = content.option2;
+        }
+
+        function updateSizes(level) {
+            option1Button.style.flexGrow = 1 + level * 0.5;
+            option2Button.style.flexGrow = 1;
+
+            option1Button.style.fontSize = `${initialFontSize + (level * fontSizeIncrement)}rem`;
+            option2Button.style.fontSize = `${initialFontSize}rem`;
+        }
+
+
+        function handleOption1Click() {
+            gameContainer.style.display = 'none';
+            finishScreen.style.display = 'flex';
+            createFallingEffect();
+            expandingHeartContainer.style.display = 'flex';
+            expandingHeart.classList.add('animate');
+        }
+
+        function handleOption2Click() {
+            if (currentLevel < maxLevels - 1) {
+                currentLevel++;
+                updateContent(currentLevel);
+                updateSizes(currentLevel);
+                
+                if (currentLevel === 9) {
+                    option2Button.style.display = 'none';
+                }
+            } else {
+                option2Button.disabled = true;
+            }
+        }
+
+        function restartGame() {
+            currentLevel = 0;
+            clearFallingEffect();
+            expandingHeartContainer.style.display = 'none';
+            expandingHeart.classList.remove('animate');
+            
+            option2Button.disabled = false;
+            option2Button.style.display = 'flex';
+            
+            finishScreen.style.display = 'none';
+            gameContainer.style.display = 'flex';
+            
+            updateContent(0);
+            updateSizes(0);
+        }
+        
+        // 新增：预加载所有GIF图以优化同步
+        function preloadGifs() {
+            console.log("Preloading GIFs...");
+            levelContent.forEach(level => {
+                const img = new Image();
+                img.src = level.gif;
+            });
+            const finalImg = new Image();
+            finalImg.src = finalGifUrl;
+            console.log("Preloading complete.");
+        }
+
+        option1Button.addEventListener('click', handleOption1Click);
+        option2Button.addEventListener('click', handleOption2Click);
+        restartBtn.addEventListener('click', restartGame);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            preloadGifs(); // 页面加载时执行预加载
+            finalGif.src = finalGifUrl;
+            restartGame();
+        });
+    </script>
+
+</body>
+</html>
